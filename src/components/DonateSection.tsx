@@ -80,7 +80,7 @@ export default function DonateSection() {
           <img
             src="/images/school-building.jpg"
             alt=""
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-[center_28%]"
           />
         </motion.div>
         {/* Overlay to blend image and ensure legibility */}
