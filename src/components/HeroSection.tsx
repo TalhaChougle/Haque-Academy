@@ -3,14 +3,14 @@ import { GraduationCap, Users, Award } from 'lucide-react';
 
 export default function HeroSection() {
   return (
-    <section id="home" className="relative flex flex-col min-h-[80dvh] sm:min-h-screen">
+    <section id="home" className="relative flex flex-col min-h-screen min-h-[100dvh]">
       {/* Background image — fixed on desktop, absolute on mobile */}
       <div className="hero-parallax">
         <div className="absolute inset-0">
           <img
-            src="/images/school-building.jpg"
+            src="/images/school-building.png"
             alt="Haque Academy School Building"
-            className="w-full h-full object-cover object-[51%_28%] md:object-center"
+            className="w-full h-full object-cover object-[31%_0%] md:object-center"
           />
           {/* Gradient overlays — lighter to keep background image visible */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/40 to-black/50" />
@@ -19,13 +19,13 @@ export default function HeroSection() {
       </div>
 
       {/* Hero Content — scrolls normally, does not stay pinned */}
-      <div className="relative flex-1 flex flex-col items-center justify-center px-3 xs:px-4 sm:px-6 text-center safe-padding-top pt-16 xs:pt-20 sm:pt-28 pb-12 min-h-[80dvh] sm:min-h-screen">
+      <div className="relative flex-1 flex flex-col items-center justify-end sm:justify-center px-3 xs:px-4 sm:px-6 text-center safe-padding-top pt-16 xs:pt-20 sm:pt-28 pb-16 xs:pb-20 sm:pb-12 min-h-screen min-h-[100dvh]">
         {/* Logo badge */}
         <motion.div
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ duration: 0.8, type: 'spring', stiffness: 100 }}
-          className="mb-3 xs:mb-4 sm:mb-6 mt-8 xs:mt-10 sm:mt-16 md:mt-20"
+          className="mb-3 xs:mb-4 sm:mb-6 mt-2 xs:mt-4 sm:mt-16 md:mt-20"
         >
           <div className="relative">
             <div className="absolute -inset-2 xs:-inset-3 bg-emerald-400/20 rounded-full blur-xl animate-pulse" />

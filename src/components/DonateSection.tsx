@@ -78,7 +78,7 @@ export default function DonateSection() {
           className="absolute -inset-y-[15%] inset-x-0 w-full h-[130%] opacity-45"
         >
           <img
-            src="/images/school-building.jpg"
+            src="/images/school-building.png"
             alt=""
             className="w-full h-full object-cover object-[center_28%]"
           />
