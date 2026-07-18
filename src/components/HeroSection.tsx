@@ -6,22 +6,18 @@ export default function HeroSection() {
     <section id="home" className="relative flex flex-col min-h-screen min-h-[100dvh]">
       {/* Background image — fixed on desktop, absolute on mobile */}
       <div className="hero-parallax">
-        <div className="absolute inset-0 overflow-hidden">
-          {/* Blurred background to cover the entire screen */}
-          <img
-            src="/images/school-building.png"
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-55"
-          />
-          {/* Sharp foreground building image — centered horizontally, aligned to top to prevent cropping */}
-          <img
-            src="/images/school-building.png"
-            alt="Haque Academy School Building"
-            className="w-full h-full object-contain object-top"
-          />
+        <div className="absolute inset-0">
+          <picture>
+            <source media="(min-width: 640px)" srcSet="/images/school-building.png" />
+            <img
+              src="/images/school-building-mobile.png"
+              alt="Haque Academy School Building"
+              className="w-full h-full object-cover object-center"
+            />
+          </picture>
           {/* Gradient overlays — lighter to keep background image visible */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/35 to-black/45" />
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/15 to-black/15" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/40 to-black/50" />
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/20 to-black/20" />
         </div>
       </div>
 
