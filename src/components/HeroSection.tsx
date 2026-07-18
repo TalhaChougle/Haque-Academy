@@ -10,7 +10,7 @@ export default function HeroSection() {
           <img
             src="/images/school-building.jpg"
             alt="Haque Academy School Building"
-            className="w-full h-full object-cover object-[center_28%] md:object-center"
+            className="w-full h-full object-cover object-[25%_28%] md:object-center"
           />
           {/* Gradient overlays — lighter to keep background image visible */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/40 to-black/50" />

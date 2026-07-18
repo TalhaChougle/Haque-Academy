@@ -3,8 +3,8 @@ import type { ReactNode } from 'react';
 
 // Simple hardcoded admin login — no real auth provider involved.
 // Change these before deploying if you want a different password.
-const ADMIN_EMAIL = 'admin';
-const ADMIN_PASSWORD = 'admin';
+const ADMIN_EMAIL = 'haqueacademy_admin';
+const ADMIN_PASSWORD = 'haqueacademy@1996';
 const SESSION_KEY = 'haque_admin_logged_in';
 
 interface AdminContextValue {
