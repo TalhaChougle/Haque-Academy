@@ -133,10 +133,10 @@ function EventForm({
         return;
       }
     } else {
-      const { error: err } = await addAnnualEvent(payload);
-      if (err) {
+      const { event: newEv, error: err } = await addAnnualEvent(payload);
+      if (!newEv) {
         setSaving(false);
-        setError(`Failed to add event: ${err}`);
+        setError(`Failed to add event: ${err || 'Unknown error'}`);
         return;
       }
     }
