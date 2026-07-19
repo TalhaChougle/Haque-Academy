@@ -77,6 +77,43 @@ const suggestIcon = (eventName: string): string => {
   return 'Calendar'; // default fallback
 };
 
+export const getEventImage = (iconName: string, eventName: string): string | null => {
+  if (!iconName) return null;
+  if (iconName.startsWith('http://') || iconName.startsWith('https://') || iconName.startsWith('data:image/') || iconName.startsWith('/')) {
+    return iconName;
+  }
+  
+  const nameLower = eventName.toLowerCase();
+  
+  if (nameLower.includes('science') || nameLower.includes('exhibition') || nameLower.includes('lab') || nameLower.includes('fair') || iconName === 'FlaskConical') {
+    return 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&auto=format&fit=crop&q=80';
+  }
+  if (nameLower.includes('republic') || (iconName === 'Flag' && nameLower.includes('republic'))) {
+    return 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600&auto=format&fit=crop&q=80';
+  }
+  if (nameLower.includes('independence') || iconName === 'Flag') {
+    return 'https://images.unsplash.com/photo-1532375810709-75b1da00537c?w=600&auto=format&fit=crop&q=80';
+  }
+  if (nameLower.includes('foundation') || nameLower.includes('school') || iconName === 'Calendar') {
+    return 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=600&auto=format&fit=crop&q=80';
+  }
+  if (nameLower.includes('ramazan') || nameLower.includes('iftaar') || iconName === 'Moon') {
+    return 'https://images.unsplash.com/photo-1581078426770-6d336e5de7bf?w=600&auto=format&fit=crop&q=80';
+  }
+  if (nameLower.includes('annual') || nameLower.includes('celebration') || iconName === 'GraduationCap' || iconName === 'Sparkles') {
+    return 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&auto=format&fit=crop&q=80';
+  }
+  if (iconName === 'Award') {
+    return 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=600&auto=format&fit=crop&q=80';
+  }
+  if (iconName === 'Trophy') {
+    return 'https://images.unsplash.com/photo-1460518451285-cd7af7f0f3ad?w=600&auto=format&fit=crop&q=80';
+  }
+  
+  return null;
+};
+
+
 function EventForm({
   editing,
   onDone,
@@ -434,49 +471,70 @@ export default function ActivitiesSection() {
         {loadingEvents ? (
           <p className="text-center text-gray-400 text-sm py-8">Loading events…</p>
         ) : (
-          <div className="grid grid-cols-2 xs:grid-cols-3 lg:grid-cols-6 gap-2.5 xs:gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {events.map((event, i) => {
-              const isImage = event.icon_name && (event.icon_name.startsWith('http://') || event.icon_name.startsWith('https://') || event.icon_name.startsWith('data:image/') || event.icon_name.startsWith('/'));
+              const imageUrl = getEventImage(event.icon_name, event.name);
+              const isImage = !!imageUrl;
               const IconComponent = !isImage ? (ICON_MAP[event.icon_name] || Calendar) : null;
+              
+              // Safely extract the background color for visual fallbacks
+              const colorParts = event.color ? event.color.split(' ') : ['bg-emerald-50', 'text-emerald-600'];
+              const bgClass = colorParts[0];
+
               return (
                 <AnimatedCard key={event.id} delay={i * 0.06}>
-                  <div className="group relative bg-white rounded-xl xs:rounded-2xl p-3 xs:p-4 sm:p-5 text-center border border-gray-100 hover:border-emerald-200 hover:shadow-lg transition-all duration-300 h-full flex flex-col items-center justify-center min-h-[120px]">
-                    <div className={`w-9 h-9 xs:w-10 xs:h-10 sm:w-12 sm:h-12 rounded-lg xs:rounded-xl overflow-hidden flex items-center justify-center mx-auto mb-2 xs:mb-3 ${event.color}`}>
+                  <div className="group relative bg-white rounded-2xl border border-gray-100 hover:border-emerald-200 hover:shadow-xl transition-all duration-300 h-full flex flex-col overflow-hidden">
+                    {/* Card Visual Header */}
+                    <div className="relative w-full aspect-video bg-gray-50 flex items-center justify-center overflow-hidden shrink-0 border-b border-gray-50">
                       {isImage ? (
-                        <img src={event.icon_name} className="w-full h-full object-cover" alt="" />
+                        <img
+                          src={imageUrl}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          alt={event.name}
+                        />
                       ) : (
-                        IconComponent && <IconComponent className="w-4 h-4 xs:w-4.5 xs:h-4.5 sm:w-5 sm:h-5" />
+                        <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50/20 to-emerald-100/10 ${bgClass}/10`}>
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm ${event.color}`}>
+                            {IconComponent && <IconComponent className="w-6 h-6" />}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Edit-mode controls */}
+                      {loggedIn && editMode && (
+                        <div className="absolute top-2.5 right-2.5 flex gap-1.5 z-10">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingEvent(event);
+                              setShowEventForm(true);
+                            }}
+                            className="w-8 h-8 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center hover:bg-emerald-50 hover:text-emerald-700 hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+                          >
+                            <Pencil className="w-3.5 h-3.5 text-gray-600" />
+                          </button>
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              if (confirm(`Delete the event "${event.name}"?`)) {
+                                await deleteAnnualEvent(event.id);
+                                loadEvents();
+                              }
+                            }}
+                            className="w-8 h-8 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center hover:bg-red-50 hover:text-red-600 hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-gray-600" />
+                          </button>
+                        </div>
                       )}
                     </div>
-                    <p className="text-[10px] xs:text-xs sm:text-sm font-medium text-gray-700 leading-tight">{event.name}</p>
 
-                    {/* Edit-mode controls */}
-                    {loggedIn && editMode && (
-                      <div className="absolute top-1.5 right-1.5 flex gap-1">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingEvent(event);
-                            setShowEventForm(true);
-                          }}
-                          className="w-6.5 h-6.5 rounded-full bg-white shadow border border-gray-100 flex items-center justify-center hover:bg-emerald-50 hover:text-emerald-700 hover:scale-105 active:scale-95 transition-transform"
-                        >
-                          <Pencil className="w-3 h-3 text-gray-600" />
-                        </button>
-                        <button
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            if (confirm(`Delete the event "${event.name}"?`)) {
-                              await deleteAnnualEvent(event.id);
-                              loadEvents();
-                            }
-                          }}
-                          className="w-6.5 h-6.5 rounded-full bg-white shadow border border-gray-100 flex items-center justify-center hover:bg-red-50 hover:text-red-600 hover:scale-105 active:scale-95 transition-transform"
-                        >
-                          <Trash2 className="w-3 h-3 text-gray-600" />
-                        </button>
-                      </div>
-                    )}
+                    {/* Content */}
+                    <div className="p-4 flex flex-col justify-center flex-grow text-center">
+                      <p className="text-sm xs:text-base font-semibold text-gray-800 leading-snug group-hover:text-emerald-700 transition-colors">
+                        {event.name}
+                      </p>
+                    </div>
                   </div>
                 </AnimatedCard>
               );
@@ -490,10 +548,10 @@ export default function ActivitiesSection() {
                     setEditingEvent(null);
                     setShowEventForm(true);
                   }}
-                  className="w-full h-full min-h-[120px] rounded-xl xs:rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50/50 flex flex-col items-center justify-center gap-1.5 text-emerald-600 hover:bg-emerald-50 active:bg-emerald-100 transition-colors cursor-pointer"
+                  className="w-full h-full min-h-[160px] rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50/50 flex flex-col items-center justify-center gap-2 text-emerald-600 hover:bg-emerald-50 active:bg-emerald-100 transition-colors cursor-pointer"
                 >
-                  <Plus className="w-6 h-6" />
-                  <span className="text-xs font-semibold">Add Event</span>
+                  <Plus className="w-8 h-8" />
+                  <span className="text-sm font-semibold">Add Event</span>
                 </button>
               </AnimatedCard>
             )}

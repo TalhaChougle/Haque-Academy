@@ -172,15 +172,15 @@ export interface AnnualEvent {
 }
 
 const DEFAULT_EVENTS: Omit<AnnualEvent, 'id'>[] = [
-  { name: 'Science Exhibition', icon_name: 'FlaskConical', color: 'bg-blue-50 text-blue-600' },
-  { name: '15th Aug Independence Day', icon_name: 'Flag', color: 'bg-orange-50 text-orange-600' },
-  { name: '26th Jan Republic Day', icon_name: 'Flag', color: 'bg-green-50 text-green-600' },
-  { name: 'School Foundation Day', icon_name: 'Calendar', color: 'bg-purple-50 text-purple-600' },
-  { name: 'Ramazan Iftaar Program', icon_name: 'Moon', color: 'bg-emerald-50 text-emerald-600' },
-  { name: 'Annual Day Celebration', icon_name: 'GraduationCap', color: 'bg-pink-50 text-pink-600' }
+  { name: 'Science Exhibition', icon_name: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&auto=format&fit=crop&q=80', color: 'bg-blue-50 text-blue-600' },
+  { name: '15th Aug Independence Day', icon_name: 'https://images.unsplash.com/photo-1532375810709-75b1da00537c?w=600&auto=format&fit=crop&q=80', color: 'bg-orange-50 text-orange-600' },
+  { name: '26th Jan Republic Day', icon_name: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600&auto=format&fit=crop&q=80', color: 'bg-green-50 text-green-600' },
+  { name: 'School Foundation Day', icon_name: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=600&auto=format&fit=crop&q=80', color: 'bg-purple-50 text-purple-600' },
+  { name: 'Ramazan Iftaar Program', icon_name: 'https://images.unsplash.com/photo-1581078426770-6d336e5de7bf?w=600&auto=format&fit=crop&q=80', color: 'bg-emerald-50 text-emerald-600' },
+  { name: 'Annual Day Celebration', icon_name: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&auto=format&fit=crop&q=80', color: 'bg-pink-50 text-pink-600' }
 ];
 
-const EVENTS_LOCAL_KEY = 'haque:annual_events';
+const EVENTS_LOCAL_KEY = 'haque:annual_events_v2';
 
 function getLocalEvents(): AnnualEvent[] {
   const data = localStorage.getItem(EVENTS_LOCAL_KEY);
