@@ -93,13 +93,13 @@ export default function AboutSection() {
                       </div>
                     </div>
                     <p className="text-gray-700 leading-relaxed text-xs xs:text-sm sm:text-base">
-                      The <span className="text-emerald-700 font-semibold">Haque Academy</span> runs under the aegis of <strong className="text-emerald-700">Haque Foundation (registered organisation)</strong>, 
-                      founded by <strong className="text-emerald-700">Hafiz Izharul Haque Ataur Rahaman</strong>, who was blind, but he knew 
-                      the importance of education. With that vision in mind, he founded this school in his village on 
+                      The <span className="text-emerald-700 font-semibold">Haque Academy</span> runs under the aegis of <strong className="text-emerald-700">Haque Foundation (registered organisation)</strong>,
+                      founded by <strong className="text-emerald-700">Hafiz Izharul Haque Ataur Rahaman</strong>, who was blind, but he knew
+                      the importance of education. With that vision in mind, he founded this school with the help of his son in his village on
                       <strong className="text-emerald-700"> 16th June, 1996</strong>.
                     </p>
                     <p className="text-gray-700 leading-relaxed text-xs xs:text-sm sm:text-base">
-                      He himself was blind, but he shared the <em className="text-gold-600 font-medium">light of knowledge</em> among people. 
+                      He himself was blind, but he shared the <em className="text-gold-600 font-medium">light of knowledge</em> among people.
                       Over the past 30 years, and through their continuous hard work, and dedication the school has reached the great position it is today. Every child in their village has studied at their school and today they have become something or the other.
                     </p>
                   </div>
@@ -114,7 +114,7 @@ export default function AboutSection() {
                     </p>
                     <div className="bg-white/80 rounded-xl xs:rounded-2xl p-3 xs:p-4 border border-emerald-100">
                       <p className="text-emerald-800 font-medium italic text-xs xs:text-sm sm:text-base leading-relaxed">
-                        "He was blind, yet he illuminated the path of knowledge for thousands. Today, every person 
+                        "He was blind, yet he illuminated the path of knowledge for thousands. Today, every person
                         in his village remembers his extraordinary contribution towards education."
                       </p>
                     </div>
@@ -149,6 +149,11 @@ export default function AboutSection() {
                         <p className="text-base sm:text-xl font-medium text-emerald-600 leading-tight">Ziyauddin Izharul Haque Shaikh</p>
                       </div>
                     </div>
+                    <div className="bg-white/80 rounded-xl xs:rounded-2xl p-3 xs:p-4 border border-emerald-100">
+                      <p className="text-emerald-800 font-medium italic text-xs xs:text-sm sm:text-base leading-relaxed">
+                        "The elder son, <strong className="text-emerald-700">Ziyauddin Izharul Haque Shaikh</strong>, has now taken up the responsibility of his father to run the school, <strong className="text-emerald-700">Haque Academy</strong>."
+                      </p>
+                    </div>
                     <p className="text-gray-700 leading-relaxed text-xs xs:text-sm sm:text-base">
                       <strong className="text-emerald-700">Message from Director:</strong><br />
                       <span className="font-arabic text-gold-600 text-lg sm:text-xl font-semibold">Assalamu Alaikum</span>, it is my privilege to extend my heartfelt
@@ -160,10 +165,6 @@ export default function AboutSection() {
                   {/* Right Column */}
                   <div className="space-y-4">
                     <p className="text-gray-700 leading-relaxed text-xs xs:text-sm sm:text-base md:pt-14 lg:pt-16">
-                      The elder son, <strong className="text-emerald-700">Ziyauddin Izharul Haque Shaikh</strong>, has now taken up the
-                      responsibility of his father to run the school, <strong className="text-emerald-700">Haque Academy</strong>.
-                    </p>
-                    <p className="text-gray-700 leading-relaxed text-xs xs:text-sm sm:text-base">
                       At <span className="text-emerald-700 font-semibold">Haque Academy</span>, we are committed to providing quality education in a safe, disciplined, and caring
                       environment. Our aim is not only to achieve academic excellence but also to nurture good character,
                       honesty, respect, and a lifelong love of learning.
@@ -210,7 +211,7 @@ export default function AboutSection() {
                   </div>
                   <h3 className="font-display text-lg xs:text-xl sm:text-2xl font-bold mb-3 xs:mb-4">Our Vision</h3>
                   <p className="text-gold-50 text-xs xs:text-sm sm:text-base leading-relaxed">
-                    To become a leading institution that nurtures knowledgeable, confident, and compassionate students 
+                    To become a leading institution that nurtures knowledgeable, confident, and compassionate students
                     who contribute positively to society.
                   </p>
                   <div className="mt-4 xs:mt-5 sm:mt-6 pt-4 xs:pt-5 border-t border-white/20">

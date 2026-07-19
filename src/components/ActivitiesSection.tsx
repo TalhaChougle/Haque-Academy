@@ -8,6 +8,7 @@ import {
   updateAnnualEvent,
   deleteAnnualEvent,
   onEventsChanged,
+  uploadGalleryImage,
   type AnnualEvent
 } from '../lib/dataStore';
 import {
@@ -180,45 +181,92 @@ function EventForm({
           />
         </div>
 
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label className="block text-[10px] xs:text-xs font-semibold text-gray-500 uppercase tracking-wider">Select Icon</label>
-            {!isIconManuallySet && name.trim() && (
-              <span className="text-[9px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                Suggested logo selected
-              </span>
-            )}
-          </div>
-          <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto p-2 bg-gray-50 border border-gray-200 rounded-xl">
-            {icons.map((ico) => {
-              const IconComponent = ICON_MAP[ico] || Calendar;
-              const isSelected = iconName === ico;
-              const suggested = suggestIcon(name);
-              const isSuggested = name.trim() && suggested === ico;
-              return (
-                <button
-                  key={ico}
-                  type="button"
-                  onClick={() => {
-                    setIconName(ico);
-                    setIsIconManuallySet(true);
-                  }}
-                  className={`relative p-2 rounded-lg flex flex-col items-center justify-center gap-1 border text-center transition-all cursor-pointer min-h-[56px] ${
-                    isSelected
-                      ? 'border-emerald-600 bg-emerald-50/50 text-emerald-700 font-semibold ring-2 ring-emerald-500/20 shadow-sm'
-                      : 'border-gray-100 bg-white text-gray-400 hover:bg-gray-50 hover:text-gray-600'
-                  }`}
-                >
-                  <IconComponent className="w-4 h-4" />
-                  <span className="text-[8px] truncate max-w-full leading-none mt-0.5">{ico}</span>
-                  {isSuggested && (
-                    <span className="absolute -top-1 -right-1 px-1 py-0.5 bg-amber-500 text-[7px] text-white font-bold rounded-full scale-75 origin-top-right">
-                      Auto
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+        <div className="space-y-2">
+          <label className="block text-[10px] xs:text-xs font-semibold text-gray-500 uppercase tracking-wider">Event Image</label>
+          <div className="flex items-center gap-4 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+            {/* Preview */}
+            <div className="shrink-0">
+              {iconName && (iconName.startsWith('http://') || iconName.startsWith('https://') || iconName.startsWith('data:image/') || iconName.startsWith('/')) ? (
+                <img
+                  src={iconName}
+                  alt="Preview"
+                  className="w-16 h-16 object-cover rounded-xl border border-gray-200 bg-white"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center">
+                  {(() => {
+                    const IconComponent = ICON_MAP[iconName] || Calendar;
+                    return <IconComponent className="w-8 h-8" />;
+                  })()}
+                </div>
+              )}
+            </div>
+
+            {/* Upload & Reset Buttons */}
+            <div className="flex-1 min-w-0">
+              <div className="flex gap-2">
+                <label className="inline-flex items-center justify-center px-3 py-1.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 shadow-sm cursor-pointer transition-all hover:border-emerald-500">
+                  <span>Upload Image</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 5 * 1024 * 1024) {
+                        setError('Image file must be under 5MB.');
+                        return;
+                      }
+                      setSaving(true);
+                      setError(null);
+                      try {
+                        const { url, error: uploadErr } = await uploadGalleryImage(file);
+                        if (url) {
+                          setIconName(url);
+                          setIsIconManuallySet(true);
+                        } else {
+                          console.warn('Supabase upload failed, using local base64:', uploadErr);
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            if (typeof reader.result === 'string') {
+                              setIconName(reader.result);
+                              setIsIconManuallySet(true);
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      } catch (err: any) {
+                        console.error('File selection error, fallback to base64:', err);
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          if (typeof reader.result === 'string') {
+                            setIconName(reader.result);
+                            setIsIconManuallySet(true);
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}
+                  />
+                </label>
+                {(iconName.startsWith('http://') || iconName.startsWith('https://') || iconName.startsWith('data:image/') || iconName.startsWith('/')) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIconName('Calendar');
+                      setIsIconManuallySet(false);
+                    }}
+                    className="px-2.5 py-1.5 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 border border-gray-200 hover:border-red-200 rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
+              <p className="text-[10px] text-gray-400 mt-1 truncate">PNG, JPG, GIF up to 5MB</p>
+            </div>
           </div>
         </div>
 
@@ -388,12 +436,17 @@ export default function ActivitiesSection() {
         ) : (
           <div className="grid grid-cols-2 xs:grid-cols-3 lg:grid-cols-6 gap-2.5 xs:gap-3 sm:gap-4">
             {events.map((event, i) => {
-              const IconComponent = ICON_MAP[event.icon_name] || Calendar;
+              const isImage = event.icon_name && (event.icon_name.startsWith('http://') || event.icon_name.startsWith('https://') || event.icon_name.startsWith('data:image/') || event.icon_name.startsWith('/'));
+              const IconComponent = !isImage ? (ICON_MAP[event.icon_name] || Calendar) : null;
               return (
                 <AnimatedCard key={event.id} delay={i * 0.06}>
                   <div className="group relative bg-white rounded-xl xs:rounded-2xl p-3 xs:p-4 sm:p-5 text-center border border-gray-100 hover:border-emerald-200 hover:shadow-lg transition-all duration-300 h-full flex flex-col items-center justify-center min-h-[120px]">
-                    <div className={`w-9 h-9 xs:w-10 xs:h-10 sm:w-12 sm:h-12 rounded-lg xs:rounded-xl flex items-center justify-center mx-auto mb-2 xs:mb-3 ${event.color}`}>
-                      <IconComponent className="w-4 h-4 xs:w-4.5 xs:h-4.5 sm:w-5 sm:h-5" />
+                    <div className={`w-9 h-9 xs:w-10 xs:h-10 sm:w-12 sm:h-12 rounded-lg xs:rounded-xl overflow-hidden flex items-center justify-center mx-auto mb-2 xs:mb-3 ${event.color}`}>
+                      {isImage ? (
+                        <img src={event.icon_name} className="w-full h-full object-cover" alt="" />
+                      ) : (
+                        IconComponent && <IconComponent className="w-4 h-4 xs:w-4.5 xs:h-4.5 sm:w-5 sm:h-5" />
+                      )}
                     </div>
                     <p className="text-[10px] xs:text-xs sm:text-sm font-medium text-gray-700 leading-tight">{event.name}</p>
 
