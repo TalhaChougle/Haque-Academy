@@ -217,10 +217,30 @@ export async function fetchAnnualEvents(): Promise<AnnualEvent[]> {
       console.warn('Supabase fetchAnnualEvents failed, falling back to localStorage:', error.message);
       return getLocalEvents();
     }
-    // Sync to local storage for offline / preview convenience
+
     if (data && data.length > 0) {
       saveLocalEvents(data as AnnualEvent[]);
       return data as AnnualEvent[];
+    }
+
+    // If Supabase table exists but has 0 records, seed default events into Supabase
+    if (data && data.length === 0) {
+      console.log('annual_events table is empty in Supabase, seeding defaults...');
+      const seeded: AnnualEvent[] = [];
+      for (const ev of DEFAULT_EVENTS) {
+        const { data: inserted } = await supabase
+          .from('annual_events')
+          .insert(ev)
+          .select()
+          .single();
+        if (inserted) {
+          seeded.push(inserted as AnnualEvent);
+        }
+      }
+      if (seeded.length > 0) {
+        saveLocalEvents(seeded);
+        return seeded;
+      }
     }
   } catch (e) {
     console.warn('Supabase annual_events fetch failed, using local storage fallback:', e);

@@ -15,25 +15,29 @@ create table if not exists gallery_items (
 
 alter table gallery_items enable row level security;
 
--- Anyone can view gallery photos (public site)
+-- Drop existing policies if re-running
+drop policy if exists "Public can read gallery" on gallery_items;
+drop policy if exists "Admins can insert gallery" on gallery_items;
+drop policy if exists "Admins can update gallery" on gallery_items;
+drop policy if exists "Admins can delete gallery" on gallery_items;
+drop policy if exists "Public can insert gallery" on gallery_items;
+drop policy if exists "Public can update gallery" on gallery_items;
+drop policy if exists "Public can delete gallery" on gallery_items;
+
 create policy "Public can read gallery"
   on gallery_items for select
   using (true);
 
--- Only logged-in (admin) users can add/edit/delete
-create policy "Admins can insert gallery"
+create policy "Public can insert gallery"
   on gallery_items for insert
-  to authenticated
   with check (true);
 
-create policy "Admins can update gallery"
+create policy "Public can update gallery"
   on gallery_items for update
-  to authenticated
   using (true);
 
-create policy "Admins can delete gallery"
+create policy "Public can delete gallery"
   on gallery_items for delete
-  to authenticated
   using (true);
 
 -- ---------- Notices ----------
@@ -49,27 +53,32 @@ create table if not exists notices (
 
 alter table notices enable row level security;
 
+drop policy if exists "Public can read notices" on notices;
+drop policy if exists "Admins can insert notices" on notices;
+drop policy if exists "Admins can update notices" on notices;
+drop policy if exists "Admins can delete notices" on notices;
+drop policy if exists "Public can insert notices" on notices;
+drop policy if exists "Public can update notices" on notices;
+drop policy if exists "Public can delete notices" on notices;
+
 create policy "Public can read notices"
   on notices for select
   using (true);
 
-create policy "Admins can insert notices"
+create policy "Public can insert notices"
   on notices for insert
-  to authenticated
   with check (true);
 
-create policy "Admins can update notices"
+create policy "Public can update notices"
   on notices for update
-  to authenticated
   using (true);
 
-create policy "Admins can delete notices"
+create policy "Public can delete notices"
   on notices for delete
-  to authenticated
   using (true);
 
 -- ============================================================
--- Storage buckets (run in SQL editor too — creates public buckets)
+-- Storage buckets (creates public buckets)
 -- ============================================================
 insert into storage.buckets (id, name, public)
 values ('gallery', 'gallery', true)
@@ -78,6 +87,18 @@ on conflict (id) do nothing;
 insert into storage.buckets (id, name, public)
 values ('notices', 'notices', true)
 on conflict (id) do nothing;
+
+-- Drop existing storage policies if re-running
+drop policy if exists "Public read gallery files" on storage.objects;
+drop policy if exists "Public read notice files" on storage.objects;
+drop policy if exists "Admins upload gallery files" on storage.objects;
+drop policy if exists "Admins delete gallery files" on storage.objects;
+drop policy if exists "Admins upload notice files" on storage.objects;
+drop policy if exists "Admins delete notice files" on storage.objects;
+drop policy if exists "Public upload gallery files" on storage.objects;
+drop policy if exists "Public delete gallery files" on storage.objects;
+drop policy if exists "Public upload notice files" on storage.objects;
+drop policy if exists "Public delete notice files" on storage.objects;
 
 -- Allow public read of files in both buckets
 create policy "Public read gallery files"
@@ -88,30 +109,25 @@ create policy "Public read notice files"
   on storage.objects for select
   using (bucket_id = 'notices');
 
--- Allow only logged-in admins to upload/delete files
-create policy "Admins upload gallery files"
+-- Allow uploading and deleting files
+create policy "Public upload gallery files"
   on storage.objects for insert
-  to authenticated
   with check (bucket_id = 'gallery');
 
-create policy "Admins delete gallery files"
+create policy "Public delete gallery files"
   on storage.objects for delete
-  to authenticated
   using (bucket_id = 'gallery');
 
-create policy "Admins upload notice files"
+create policy "Public upload notice files"
   on storage.objects for insert
-  to authenticated
   with check (bucket_id = 'notices');
 
-create policy "Admins delete notice files"
+create policy "Public delete notice files"
   on storage.objects for delete
-  to authenticated
   using (bucket_id = 'notices');
 
 -- ============================================================
--- Seed the gallery with the current default photos (optional —
--- skip this if you'd rather add photos yourself via edit mode)
+-- Seed the gallery
 -- ============================================================
 insert into gallery_items (src, title, category) values
   ('https://images.pexels.com/photos/37169819/pexels-photo-37169819.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200', 'Inter-School Cricket Victory', 'Sports'),
@@ -126,32 +142,35 @@ on conflict do nothing;
 create table if not exists annual_events (
   id uuid primary key default gen_random_uuid(),
   name text not null,
-  icon_name text not null, -- E.g. 'FlaskConical', 'Flag', etc.
+  icon_name text not null, -- E.g. image URL or icon key like 'FlaskConical'
   color text not null, -- E.g. 'bg-blue-50 text-blue-600'
   created_at timestamptz not null default now()
 );
 
 alter table annual_events enable row level security;
 
--- Anyone can read events
+drop policy if exists "Public can read annual_events" on annual_events;
+drop policy if exists "Admins can insert annual_events" on annual_events;
+drop policy if exists "Admins can update annual_events" on annual_events;
+drop policy if exists "Admins can delete annual_events" on annual_events;
+drop policy if exists "Public can insert annual_events" on annual_events;
+drop policy if exists "Public can update annual_events" on annual_events;
+drop policy if exists "Public can delete annual_events" on annual_events;
+
 create policy "Public can read annual_events"
   on annual_events for select
   using (true);
 
--- Only logged-in (admin) users can add/edit/delete
-create policy "Admins can insert annual_events"
+create policy "Public can insert annual_events"
   on annual_events for insert
-  to authenticated
   with check (true);
 
-create policy "Admins can update annual_events"
+create policy "Public can update annual_events"
   on annual_events for update
-  to authenticated
   using (true);
 
-create policy "Admins can delete annual_events"
+create policy "Public can delete annual_events"
   on annual_events for delete
-  to authenticated
   using (true);
 
 -- Seed default events
@@ -163,4 +182,3 @@ insert into annual_events (name, icon_name, color) values
   ('Ramazan Iftaar Program', 'Moon', 'bg-emerald-50 text-emerald-600'),
   ('Annual Day Celebration', 'GraduationCap', 'bg-pink-50 text-pink-600')
 on conflict do nothing;
-

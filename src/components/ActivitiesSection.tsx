@@ -263,26 +263,22 @@ function EventForm({
                           setIconName(url);
                           setIsIconManuallySet(true);
                         } else {
-                          console.warn('Supabase upload failed, using local base64:', uploadErr);
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            if (typeof reader.result === 'string') {
-                              setIconName(reader.result);
-                              setIsIconManuallySet(true);
-                            }
-                          };
-                          reader.readAsDataURL(file);
+                          console.warn('Supabase storage upload failed:', uploadErr);
+                          const base64 = await new Promise<string>((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve(reader.result as string);
+                            reader.onerror = reject;
+                            reader.readAsDataURL(file);
+                          });
+                          setIconName(base64);
+                          setIsIconManuallySet(true);
+                          if (uploadErr) {
+                            setError(`Upload notice: Storage upload failed (${uploadErr}). Image set temporarily, but please check Supabase Storage 'gallery' bucket permissions so all visitors see it.`);
+                          }
                         }
                       } catch (err: any) {
-                        console.error('File selection error, fallback to base64:', err);
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          if (typeof reader.result === 'string') {
-                            setIconName(reader.result);
-                            setIsIconManuallySet(true);
-                          }
-                        };
-                        reader.readAsDataURL(file);
+                        console.error('File selection error:', err);
+                        setError(err?.message || 'Failed to process image');
                       } finally {
                         setSaving(false);
                       }
