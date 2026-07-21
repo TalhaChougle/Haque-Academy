@@ -205,9 +205,26 @@ function saveLocalEvents(events: AnnualEvent[]): void {
   localStorage.setItem(EVENTS_LOCAL_KEY, JSON.stringify(events));
 }
 
+// Helper to convert base64 image string to file and upload to Supabase storage
+export async function uploadBase64Image(base64Str: string): Promise<string | null> {
+  try {
+    const res = await fetch(base64Str);
+    const blob = await res.blob();
+    const mime = blob.type || 'image/jpeg';
+    const ext = mime.split('/')[1] || 'jpg';
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const file = new File([blob], path, { type: mime });
+    const { url } = await uploadGalleryImage(file);
+    return url;
+  } catch (e) {
+    console.warn('Failed to upload base64 image to Supabase storage:', e);
+    return null;
+  }
+}
+
 export async function fetchAnnualEvents(): Promise<AnnualEvent[]> {
   try {
-    const { data, error } = await supabase
+    const { data: dbData, error } = await supabase
       .from('annual_events')
       .select('id, name, icon_name, color')
       .order('created_at', { ascending: true });
@@ -218,19 +235,26 @@ export async function fetchAnnualEvents(): Promise<AnnualEvent[]> {
       return getLocalEvents();
     }
 
-    if (data && data.length > 0) {
-      saveLocalEvents(data as AnnualEvent[]);
-      return data as AnnualEvent[];
-    }
+    const localList = getLocalEvents();
 
-    // If Supabase table exists but has 0 records, seed default events into Supabase
-    if (data && data.length === 0) {
-      console.log('annual_events table is empty in Supabase, seeding defaults...');
+    // 1. If Supabase table has 0 records, seed local or default events to Supabase
+    if (dbData && dbData.length === 0) {
+      console.log('annual_events table is empty in Supabase, syncing to Supabase...');
+      const itemsToSync = localList.length > 0 ? localList : DEFAULT_EVENTS.map(ev => ({ ...ev, id: '' }));
       const seeded: AnnualEvent[] = [];
-      for (const ev of DEFAULT_EVENTS) {
+      for (const ev of itemsToSync) {
+        let iconName = ev.icon_name;
+        if (iconName && iconName.startsWith('data:image/')) {
+          const uploadedUrl = await uploadBase64Image(iconName);
+          if (uploadedUrl) iconName = uploadedUrl;
+        }
         const { data: inserted } = await supabase
           .from('annual_events')
-          .insert(ev)
+          .insert({
+            name: ev.name,
+            icon_name: iconName,
+            color: ev.color,
+          })
           .select()
           .single();
         if (inserted) {
@@ -242,6 +266,39 @@ export async function fetchAnnualEvents(): Promise<AnnualEvent[]> {
         return seeded;
       }
     }
+
+    // 2. If Supabase table has records, check if any local events in localStorage are missing from DB
+    if (dbData && dbData.length > 0) {
+      const dbEvents = dbData as AnnualEvent[];
+      const dbNames = new Set(dbEvents.map(e => e.name.toLowerCase().trim()));
+
+      const missingLocal = localList.filter(le => !dbNames.has(le.name.toLowerCase().trim()));
+      if (missingLocal.length > 0) {
+        console.log(`Syncing ${missingLocal.length} unsynced local event(s) to Supabase...`);
+        for (const missing of missingLocal) {
+          let iconName = missing.icon_name;
+          if (iconName && iconName.startsWith('data:image/')) {
+            const uploadedUrl = await uploadBase64Image(iconName);
+            if (uploadedUrl) iconName = uploadedUrl;
+          }
+          const { data: inserted } = await supabase
+            .from('annual_events')
+            .insert({
+              name: missing.name,
+              icon_name: iconName,
+              color: missing.color,
+            })
+            .select()
+            .single();
+          if (inserted) {
+            dbEvents.push(inserted as AnnualEvent);
+          }
+        }
+      }
+
+      saveLocalEvents(dbEvents);
+      return dbEvents;
+    }
   } catch (e) {
     console.warn('Supabase annual_events fetch failed, using local storage fallback:', e);
   }
@@ -252,8 +309,16 @@ export async function addAnnualEvent(event: Omit<AnnualEvent, 'id'>): Promise<{ 
   let createdEvent: AnnualEvent | null = null;
   let supabaseErr: string | null = null;
 
+  let iconName = event.icon_name;
+  if (iconName && iconName.startsWith('data:image/')) {
+    const uploadedUrl = await uploadBase64Image(iconName);
+    if (uploadedUrl) iconName = uploadedUrl;
+  }
+
+  const payload = { ...event, icon_name: iconName };
+
   try {
-    const { data, error } = await supabase.from('annual_events').insert(event).select().single();
+    const { data, error } = await supabase.from('annual_events').insert(payload).select().single();
     if (error) {
       supabaseErr = error.message;
       console.warn('Supabase addAnnualEvent failed, adding to local storage only:', error.message);
@@ -268,7 +333,7 @@ export async function addAnnualEvent(event: Omit<AnnualEvent, 'id'>): Promise<{ 
   const localList = getLocalEvents();
   if (!createdEvent) {
     createdEvent = {
-      ...event,
+      ...payload,
       id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)
     };
   }
@@ -281,8 +346,15 @@ export async function addAnnualEvent(event: Omit<AnnualEvent, 'id'>): Promise<{ 
 
 export async function updateAnnualEvent(id: string, updatedFields: Partial<Omit<AnnualEvent, 'id'>>): Promise<boolean> {
   let success = false;
+  let fieldsToSave = { ...updatedFields };
+
+  if (fieldsToSave.icon_name && fieldsToSave.icon_name.startsWith('data:image/')) {
+    const uploadedUrl = await uploadBase64Image(fieldsToSave.icon_name);
+    if (uploadedUrl) fieldsToSave.icon_name = uploadedUrl;
+  }
+
   try {
-    const { error } = await supabase.from('annual_events').update(updatedFields).eq('id', id);
+    const { error } = await supabase.from('annual_events').update(fieldsToSave).eq('id', id);
     if (!error) {
       success = true;
     } else {
@@ -296,7 +368,7 @@ export async function updateAnnualEvent(id: string, updatedFields: Partial<Omit<
   const localList = getLocalEvents();
   const index = localList.findIndex(e => e.id === id);
   if (index !== -1) {
-    localList[index] = { ...localList[index], ...updatedFields };
+    localList[index] = { ...localList[index], ...fieldsToSave };
     saveLocalEvents(localList);
     success = true;
   }
